@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Apr 17 18:26:04 2017
+
+@author: P069304
+"""
 
 import tensorflow as tf
 import numpy as np
@@ -14,11 +20,23 @@ b1 = tf.Variable(tf.random_normal([10]), name='bias1')
 # Hypothesis using sigmoid: tf.div(1., 1. + tf.exp(tf.matmul(X, W)))
 layer1 = tf.sigmoid(tf.matmul(X, W1) + b1)
 
-W2 = tf.Variable(tf.random_normal([10, 1]), name='weight2')
-b2 = tf.Variable(tf.random_normal([1]), name='bias2')
+W2 = tf.Variable(tf.random_normal([10, 10]), name='weight2')
+b2 = tf.Variable(tf.random_normal([10]), name='bias2')
 
 # multiloayer
-hypothesis = tf.sigmoid(tf.matmul(layer1, W2) + b2)
+layer2 = tf.sigmoid(tf.matmul(layer1, W2) + b2)
+
+W3 = tf.Variable(tf.random_normal([10, 10]), name='weight2')
+b3 = tf.Variable(tf.random_normal([10]), name='bias2')
+
+# multiloayer
+layer3 = tf.sigmoid(tf.matmul(layer2, W3) + b3)
+
+W4 = tf.Variable(tf.random_normal([10, 1]), name='weight2')
+b4 = tf.Variable(tf.random_normal([1]), name='bias2')
+
+# multiloayer
+hypothesis = tf.sigmoid(tf.matmul(layer3, W4) + b4)
 
 # cost / loss function
 cost = -tf.reduce_mean(Y * tf.log(hypothesis) + (1 - Y) * tf.log(1 - hypothesis))
