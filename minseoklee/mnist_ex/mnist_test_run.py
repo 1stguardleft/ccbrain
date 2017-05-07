@@ -4,7 +4,7 @@ https://mattmazur.com/2015/03/17/a-step-by-step-backpropagation-example/
 실행 결과는 예제와 모두 동일하게 나타났다.
 input의 크기는 이며, output의 크기도 2이다.
 Hidden Layer의 크기는 1이며, 첫번째 Hidden Layer의 Neuron 크기는 2이다.
-Non-linear Function으로는 Sigmoid를 사용하였다.
+Non-linear Function으로는 tanh 사용하였다.
 '''
 
 import tensorflow as tf
@@ -17,6 +17,24 @@ import shutil
 
 from tensorflow.examples.tutorials.mnist import input_data
 
+def file_save(w, b, iter):
+  out_W = open('./mnist_result/data_w.bak', 'wb')
+  out_b = open('./mnist_result/data_b.bak', 'wb')
+  out_iter = open('./mnist_result/data_iter.bak', 'wb')
+  pickle.dump(w, out_W)
+  pickle.dump(b, out_b)
+  pickle.dump(iter, out_iter)
+  out_W.close()
+  out_b.close()
+  out_iter.close()
+  shutil.copy2('./mnist_result/data_w.bak', './mnist_result/data_w')
+  shutil.copy2('./mnist_result/data_b.bak', './mnist_result/data_b')
+  shutil.copy2('./mnist_result/data_iter.bak', './mnist_result/data_iter')
+  os.remove('./mnist_result/data_w.bak')
+  os.remove('./mnist_result/data_b.bak')
+  os.remove('./mnist_result/data_iter.bak')
+
+
 mnist = input_data.read_data_sets("./mnist_data", one_hot=True)
 
 input_data = mnist.test.images
@@ -24,11 +42,15 @@ output_data = mnist.test.labels
 input_size = len(input_data[0])
 output_size = len(output_data[0])
 learning_rate = 0.001
+display_step = 5
 
-hidden_layer_neuron_size = [784, 784, 784, 784]
+training_epochs = 30
+batch_size = 100
+
+hidden_layer_neuron_size = [256, 256]
 
 x = tf.placeholder("float", [None, input_size])
-y_ = tf.placeholder("float", [None, output_size])
+y = tf.placeholder("float", [None, output_size])
 
 W = []
 b = []
@@ -46,70 +68,50 @@ if os.path.exists("./mnist_result/data_w") == True and os.path.exists("./mnist_r
   out_iter = open('./mnist_result/data_iter', 'rb')
   iter = pickle.load(out_iter)
 else :
-  W, b = ffn.fead_forward_nn_init_with_zero_normal(input_size, output_size, hidden_layer_neuron_size)
+#  W, b = ffn.fead_forward_nn_init_with_zeros(input_size, output_size, hidden_layer_neuron_size)
+#  W, b = ffn.fead_forward_nn_init_with_zero_normal(input_size, output_size, hidden_layer_neuron_size)
+  W, b = ffn.xavier_init(input_size, output_size, hidden_layer_neuron_size)
 
-pred = ffn.fead_forward_nn(x, W, b)
-cost = tf.reduce_mean(tf.pow(tf.subtract(pred, y_), 2))
-#cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=pred, labels=y_))
-optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(cost)
+y_ = ffn.fead_forward_nn(x, W, b)
+cost = tf.reduce_mean(tf.pow(tf.subtract(y_, y), 2))
+#cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits = y_, labels = y))
+#cost = tf.reduce_mean(-tf.reduce_sum(y * tf.log(y_), reduction_indices = 1))
+#optimizer = tf.train.GradientDescentOptimizer(learning_rate = learning_rate).minimize(cost)
+optimizer = tf.train.AdamOptimizer(learning_rate = learning_rate).minimize(cost)
+
+init = tf.global_variables_initializer()
 
 with tf.Session() as sess:
-  sess.run(tf.global_variables_initializer())
-  for i in range(10000000):
-    batch_x, batch_y = mnist.train.next_batch(1)
-    sess.run(optimizer, feed_dict = {x: batch_x, y_: batch_y})
-    iter = iter + 1
-    if iter % 1000 == 0:
-      pred_ = ffn.fead_forward_nn(x, W, b)
-      correct_prediction = tf.reduce_mean(tf.pow(tf.subtract(pred_, y_), 2))
-      print("{}th cost : ".format(iter + 1), end = "")
-      cost2 = sess.run(correct_prediction, feed_dict = {x: mnist.test.images, y_: mnist.test.labels})
-      print(cost2)
-      log_file = open('./log_files', 'a')
-      log_file.write("{}th cost : {}\n".format(iter + 1, cost2))
-      y_result = ffn.fead_forward_nn(x, W, b)
-      correct_prediction = tf.equal(tf.argmax(y_, 1), tf.argmax(y_result, 1))
+  sess.run(init)
+  for epoch in range(training_epochs):
+    avg_cost = 0.
+    total_batch = int(mnist.train.num_examples / batch_size)
+    for i in range(total_batch) :
+      batch_x, batch_y = mnist.train.next_batch(batch_size)
+      _, W_result, b_result, cost_result = sess.run([optimizer, W, b, cost], feed_dict = {x: batch_x, y: batch_y})
+      avg_cost += cost_result / total_batch
+      iter = iter + batch_size
+    if epoch % display_step == 0:
+      y_result_set = ffn.fead_forward_nn(input_data, W, b)
+      correct_prediction = tf.equal(tf.argmax(y_result_set, 1), tf.argmax(output_data, 1))
       accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
-      print("{}th accuracy : ".format(iter + 1), end = "")
-      accuracy2 = sess.run(accuracy, feed_dict = {x: mnist.test.images, y_: mnist.test.labels})
-      print("{}%".format(accuracy2 * 100))
-      log_file.write("{}th accuracy : {}%\n".format(iter + 1, accuracy2 * 100))
+      log_file = open('./log_files', 'a')
+      print("{}th cost : {:.9f}".format(iter + 1, avg_cost))
+      log_file.write("{}th cost : {}\n".format(iter + 1, avg_cost))
+      print("{}th accuracy : {:.4f}%".format(iter + 1, accuracy.eval() * 100.))
+      log_file.write("{}th accuracy : {:.4f}%\n".format(iter + 1, accuracy.eval() * 100.))
       log_file.close()
-      out_W = open('./mnist_result/data_w.bak', 'wb')
-      out_b = open('./mnist_result/data_b.bak', 'wb')
-      out_iter = open('./mnist_result/data_iter.bak', 'wb')
-      accuracy_result, W_result, b_result = sess.run([accuracy, W, b], feed_dict = {x: mnist.test.images, y_: mnist.test.labels})
-      pickle.dump(W_result, out_W)
-      pickle.dump(b_result, out_b)
-      pickle.dump(iter, out_iter)
-      out_W.close()
-      out_b.close()
-      out_iter.close()
-      shutil.copy2('./mnist_result/data_w.bak', './mnist_result/data_w')
-      shutil.copy2('./mnist_result/data_b.bak', './mnist_result/data_b')
-      shutil.copy2('./mnist_result/data_iter.bak', './mnist_result/data_iter')
-      os.remove('./mnist_result/data_w.bak')
-      os.remove('./mnist_result/data_b.bak')
-      os.remove('./mnist_result/data_iter.bak')
+      file_save(W_result, b_result, iter)
       print("{}th file write success!!".format(iter + 1))
-  y_result = ffn.fead_forward_nn(x, W, b)
-  correct_prediction = tf.equal(tf.argmax(y_, 1), tf.argmax(y_result, 1))
+  print("Optimization Finished!")
+  y_result_set = ffn.fead_forward_nn(input_data, W, b)
+  correct_prediction = tf.equal(tf.argmax(y_result_set, 1), tf.argmax(output_data, 1))
   accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
-  out_W = open('./mnist_result/data_w.bak', 'wb')
-  out_b = open('./mnist_result/data_b.bak', 'wb')
-  out_iter = open('./mnist_result/data_iter.bak', 'wb')
-  accuracy_result, W_result, b_result = sess.run([accuracy, W, b], feed_dict = {x: mnist.test.images, y_: mnist.test.labels})
-  pickle.dump(W_result, out_W)
-  pickle.dump(b_result, out_b)
-  pickle.dump(iter, out_iter)
-  out_W.close()
-  out_b.close()
-  out_iter.close()
-  shutil.copy2('./mnist_result/data_w.bak', './mnist_result/data_w')
-  shutil.copy2('./mnist_result/data_b.bak', './mnist_result/data_b')
-  shutil.copy2('./mnist_result/data_iter.bak', './mnist_result/data_iter')
-  os.remove('./mnist_result/data_w.bak')
-  os.remove('./mnist_result/data_b.bak')
-  os.remove('./mnist_result/data_iter.bak')
-  print("final accuracy : {}".format(accuracy_result))
-  sess.close()
+  log_file = open('./log_files', 'a')
+  print("{}th cost : {:.9f}".format(iter + 1, avg_cost))
+  log_file.write("{}th cost : {}\n".format(iter + 1, avg_cost))
+  print("{}th accuracy : {:.4f}%".format(iter + 1, accuracy.eval() * 100.))
+  log_file.write("{}th accuracy : {:.4f}%\n".format(iter + 1, accuracy.eval() * 100.))
+  log_file.close()
+  file_save(W_result, b_result, iter)
+  print("{}th file write success!!".format(iter + 1))
