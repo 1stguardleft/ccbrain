@@ -7,6 +7,8 @@ sess = tf.InteractiveSession()
 x = tf.placeholder(tf.float32, shape=[None, 784])
 y_ = tf.placeholder(tf.float32, shape=[None, 10])
 
+batch_size = 50
+
 def weight_variable(shape):
   initial = tf.truncated_normal(shape, stddev = 0.1)
   return tf.Variable(initial)
@@ -60,4 +62,10 @@ for i in range(20000):
     train_accuracy = accuracy.eval(feed_dict = {x: batch[0], y_: batch[1], keep_prob: 1.0})
     print("step %d, training accuracy %.6f" % (i + 1, train_accuracy))
   train_step.run(feed_dict = {x: batch[0], y_: batch[1], keep_prob: 0.5})
-print("test accuracy %.6f" % accuracy.eval(feed_dict = {x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0}))
+total_accuracy = 0.
+total_size = int(mnist.train.num_examples / batch_size)
+for i in range(total_size) :
+  batch_x, batch_y = mnist.train.next_batch(batch_size)
+  accuracy_result = sess.run([accuracy], feed_dict = {x: batch_x, y_: batch_y, keep_prob: 1.0})
+  total_accuracy += accuracy_result[0] / total_size
+print("test accuracy %.6f" % total_accuracy)

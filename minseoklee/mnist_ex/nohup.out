@@ -1,0 +1,223 @@
+Extracting ./mnist_data/train-images-idx3-ubyte.gz
+Extracting ./mnist_data/train-labels-idx1-ubyte.gz
+Extracting ./mnist_data/t10k-images-idx3-ubyte.gz
+Traceback (most recent call last):
+  File "cnn_run.py", line 2, in <module>
+    mnist = input_data.read_data_sets('./mnist_data', one_hot = True)
+  File "/home/leems83/services/anaconda3/lib/python3.5/site-packages/tensorflow/contrib/learn/python/learn/datasets/mnist.py", line 223, in read_data_sets
+    test_images = extract_images(f)
+  File "/home/leems83/services/anaconda3/lib/python3.5/site-packages/tensorflow/contrib/learn/python/learn/datasets/mnist.py", line 60, in extract_images
+    buf = bytestream.read(rows * cols * num_images)
+  File "/home/leems83/services/anaconda3/lib/python3.5/gzip.py", line 274, in read
+    return self._buffer.read(size)
+  File "/home/leems83/services/anaconda3/lib/python3.5/_compression.py", line 69, in readinto
+    byte_view[:len(data)] = data
+KeyboardInterrupt
+W tensorflow/core/platform/cpu_feature_guard.cc:45] The TensorFlow library wasn't compiled to use SSE3 instructions, but these are available on your machine and could speed up CPU computations.
+W tensorflow/core/platform/cpu_feature_guard.cc:45] The TensorFlow library wasn't compiled to use SSE4.1 instructions, but these are available on your machine and could speed up CPU computations.
+W tensorflow/core/platform/cpu_feature_guard.cc:45] The TensorFlow library wasn't compiled to use SSE4.2 instructions, but these are available on your machine and could speed up CPU computations.
+Extracting ./mnist_data/train-images-idx3-ubyte.gz
+Extracting ./mnist_data/train-labels-idx1-ubyte.gz
+Extracting ./mnist_data/t10k-images-idx3-ubyte.gz
+Extracting ./mnist_data/t10k-labels-idx1-ubyte.gz
+step 1, training accuracy 0.100000
+step 101, training accuracy 0.860000
+step 201, training accuracy 0.900000
+step 301, training accuracy 0.840000
+step 401, training accuracy 1.000000
+step 501, training accuracy 0.960000
+step 601, training accuracy 1.000000
+step 701, training accuracy 0.980000
+step 801, training accuracy 0.920000
+step 901, training accuracy 0.980000
+step 1001, training accuracy 0.980000
+step 1101, training accuracy 0.940000
+step 1201, training accuracy 0.960000
+step 1301, training accuracy 0.940000
+step 1401, training accuracy 0.920000
+step 1501, training accuracy 0.960000
+step 1601, training accuracy 0.960000
+step 1701, training accuracy 0.980000
+step 1801, training accuracy 1.000000
+step 1901, training accuracy 1.000000
+step 2001, training accuracy 0.980000
+step 2101, training accuracy 1.000000
+step 2201, training accuracy 0.960000
+step 2301, training accuracy 1.000000
+step 2401, training accuracy 1.000000
+step 2501, training accuracy 0.960000
+step 2601, training accuracy 1.000000
+step 2701, training accuracy 0.980000
+step 2801, training accuracy 0.980000
+step 2901, training accuracy 0.960000
+step 3001, training accuracy 1.000000
+step 3101, training accuracy 0.980000
+step 3201, training accuracy 1.000000
+step 3301, training accuracy 1.000000
+step 3401, training accuracy 0.980000
+step 3501, training accuracy 0.980000
+step 3601, training accuracy 1.000000
+step 3701, training accuracy 1.000000
+step 3801, training accuracy 0.980000
+step 3901, training accuracy 0.960000
+step 4001, training accuracy 0.960000
+step 4101, training accuracy 0.960000
+step 4201, training accuracy 0.940000
+step 4301, training accuracy 1.000000
+step 4401, training accuracy 0.980000
+step 4501, training accuracy 1.000000
+step 4601, training accuracy 1.000000
+step 4701, training accuracy 1.000000
+step 4801, training accuracy 0.980000
+step 4901, training accuracy 1.000000
+step 5001, training accuracy 0.980000
+step 5101, training accuracy 0.980000
+step 5201, training accuracy 1.000000
+step 5301, training accuracy 0.980000
+step 5401, training accuracy 1.000000
+step 5501, training accuracy 1.000000
+step 5601, training accuracy 0.940000
+step 5701, training accuracy 0.980000
+step 5801, training accuracy 1.000000
+step 5901, training accuracy 1.000000
+step 6001, training accuracy 0.980000
+step 6101, training accuracy 1.000000
+step 6201, training accuracy 1.000000
+step 6301, training accuracy 1.000000
+step 6401, training accuracy 0.980000
+step 6501, training accuracy 1.000000
+step 6601, training accuracy 1.000000
+step 6701, training accuracy 1.000000
+step 6801, training accuracy 0.980000
+step 6901, training accuracy 1.000000
+step 7001, training accuracy 0.980000
+step 7101, training accuracy 1.000000
+step 7201, training accuracy 1.000000
+step 7301, training accuracy 1.000000
+step 7401, training accuracy 0.980000
+step 7501, training accuracy 1.000000
+step 7601, training accuracy 0.980000
+step 7701, training accuracy 1.000000
+step 7801, training accuracy 1.000000
+step 7901, training accuracy 0.980000
+step 8001, training accuracy 1.000000
+step 8101, training accuracy 1.000000
+step 8201, training accuracy 1.000000
+step 8301, training accuracy 1.000000
+step 8401, training accuracy 1.000000
+step 8501, training accuracy 0.980000
+step 8601, training accuracy 1.000000
+step 8701, training accuracy 0.980000
+step 8801, training accuracy 1.000000
+step 8901, training accuracy 1.000000
+step 9001, training accuracy 1.000000
+step 9101, training accuracy 1.000000
+step 9201, training accuracy 0.980000
+step 9301, training accuracy 1.000000
+step 9401, training accuracy 1.000000
+step 9501, training accuracy 1.000000
+step 9601, training accuracy 0.960000
+step 9701, training accuracy 1.000000
+step 9801, training accuracy 0.980000
+step 9901, training accuracy 1.000000
+step 10001, training accuracy 1.000000
+step 10101, training accuracy 1.000000
+step 10201, training accuracy 1.000000
+step 10301, training accuracy 1.000000
+step 10401, training accuracy 1.000000
+step 10501, training accuracy 0.980000
+step 10601, training accuracy 0.980000
+step 10701, training accuracy 1.000000
+step 10801, training accuracy 0.980000
+step 10901, training accuracy 1.000000
+step 11001, training accuracy 1.000000
+step 11101, training accuracy 1.000000
+step 11201, training accuracy 1.000000
+step 11301, training accuracy 1.000000
+step 11401, training accuracy 1.000000
+step 11501, training accuracy 1.000000
+step 11601, training accuracy 1.000000
+step 11701, training accuracy 1.000000
+step 11801, training accuracy 1.000000
+step 11901, training accuracy 1.000000
+step 12001, training accuracy 1.000000
+step 12101, training accuracy 1.000000
+step 12201, training accuracy 1.000000
+step 12301, training accuracy 1.000000
+step 12401, training accuracy 1.000000
+step 12501, training accuracy 1.000000
+step 12601, training accuracy 1.000000
+step 12701, training accuracy 1.000000
+step 12801, training accuracy 1.000000
+step 12901, training accuracy 1.000000
+step 13001, training accuracy 1.000000
+step 13101, training accuracy 1.000000
+step 13201, training accuracy 1.000000
+step 13301, training accuracy 1.000000
+step 13401, training accuracy 1.000000
+step 13501, training accuracy 1.000000
+step 13601, training accuracy 1.000000
+step 13701, training accuracy 1.000000
+step 13801, training accuracy 1.000000
+step 13901, training accuracy 1.000000
+step 14001, training accuracy 0.980000
+step 14101, training accuracy 1.000000
+step 14201, training accuracy 1.000000
+step 14301, training accuracy 1.000000
+step 14401, training accuracy 1.000000
+step 14501, training accuracy 1.000000
+step 14601, training accuracy 1.000000
+step 14701, training accuracy 1.000000
+step 14801, training accuracy 1.000000
+step 14901, training accuracy 1.000000
+step 15001, training accuracy 0.960000
+step 15101, training accuracy 1.000000
+step 15201, training accuracy 0.980000
+step 15301, training accuracy 1.000000
+step 15401, training accuracy 1.000000
+step 15501, training accuracy 1.000000
+step 15601, training accuracy 1.000000
+step 15701, training accuracy 1.000000
+step 15801, training accuracy 1.000000
+step 15901, training accuracy 1.000000
+step 16001, training accuracy 1.000000
+step 16101, training accuracy 1.000000
+step 16201, training accuracy 1.000000
+step 16301, training accuracy 1.000000
+step 16401, training accuracy 1.000000
+step 16501, training accuracy 1.000000
+step 16601, training accuracy 1.000000
+step 16701, training accuracy 1.000000
+step 16801, training accuracy 1.000000
+step 16901, training accuracy 1.000000
+step 17001, training accuracy 1.000000
+step 17101, training accuracy 1.000000
+step 17201, training accuracy 0.980000
+step 17301, training accuracy 1.000000
+step 17401, training accuracy 1.000000
+step 17501, training accuracy 1.000000
+step 17601, training accuracy 1.000000
+step 17701, training accuracy 1.000000
+step 17801, training accuracy 1.000000
+step 17901, training accuracy 1.000000
+step 18001, training accuracy 1.000000
+step 18101, training accuracy 1.000000
+step 18201, training accuracy 1.000000
+step 18301, training accuracy 1.000000
+step 18401, training accuracy 1.000000
+step 18501, training accuracy 1.000000
+step 18601, training accuracy 1.000000
+step 18701, training accuracy 1.000000
+step 18801, training accuracy 1.000000
+step 18901, training accuracy 1.000000
+step 19001, training accuracy 0.980000
+step 19101, training accuracy 1.000000
+step 19201, training accuracy 1.000000
+step 19301, training accuracy 1.000000
+step 19401, training accuracy 1.000000
+step 19501, training accuracy 1.000000
+step 19601, training accuracy 1.000000
+step 19701, training accuracy 1.000000
+step 19801, training accuracy 1.000000
+step 19901, training accuracy 1.000000
+test accuracy 0.999636
