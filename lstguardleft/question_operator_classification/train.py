@@ -1,141 +1,100 @@
-from __future__ import print_function
+# train.py
+# Checkpoint Laod & Save
+# Training
+# 내용
+# - model 의 constructor에 session을 넣어주지 않음에 유의
+# 주의
+# - model과 session의 완벽한 decoupling이 어려운 경우 model 코드내에서는 session을 injection 하는 방식을 취함
+# - input to output 매핑이 가능해야 함
+# - 중간 Tensor (layer)의 activation 에 접근 가능해야 함
+# - Model에 존재하는 variable을 가지고 올 수 있어야 함
+# - 작성한 Component를 library 처럼 다른 곳에 붙이거나 여러 모델을 합성하기 용이해야 함
 
 import tensorflow as tf
-import numpy as np
-import pandas as pd
 
-import preprocessor as pr
-import util as ut
-from tensorflow.contrib import rnn
+from data import DataProcessor
+from model import QOClassifier
+from config import create_hparams
+from util import get_batches
 
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.preprocessing import StandardScaler
+class QOTrainer():
+	# 클래스 변수
+	def __init__(self, model, config):
+		print("QOTrainer start !")
 
-from konlpy.tag import Kkma
-from konlpy.tag import Twitter
+		self.config = config
+		self.model = model
 
-# TODO 6.1 : TODO 1 ~ 5 까지 데이터 Load (using by Pickle)
+		self.optimizer = None
+		self.merged = None
 
-vocab_dict = pr.load_pickle('./data/question_dict.pickle')
-operator_dict = pr.load_pickle('./data/operator_dict.pickle')
+		self.define_optimizer()
 
-# TODO 6.2 : Raw Data를 읽어들여 Dictionary와 Mapping하여 관리 (Datatype : nested list)
+	def define_optimizer(self):
+		with tf.name_scope('train'):
+			self.optimizer = tf.train.AdamOptimizer(self.config.learning_rate).minimize(self.model.cost)
+			self.merged = tf.summary.merge_all()
+		#opt = tf.train.GradientDescentOptimizer(learning_rate)
+		# gradient variable list = [ (gradient,variable) ]
+		#gv = opt.compute_gradients(cost)
 
-epochs        = 1   # 1 epoch = one forward pass and one backward pass of all the  training examples.
-learing_rate  = 0.01
-batch_size    = 1  # batch size = the number of training examples in one forward/backward pass.
-iterations    = 2  # tot_data_size / batch_size = iterations = number of passes, each pass using [batch_size] number of examples.
-tot_data_size = batch_size * iterations
+		# transformed gradient variable list = [ (T(gradient),variable) ]
+		#decay = 0.9 # decay the gradient for the sake of the example
+		#tgv = [ (g, v) for (g,v) in gv] #list [(grad,var)]
+		#tgv = [ (transform_grad(g,decay=decay), v) for (g,v) in gv] #list [(grad,var)]
 
-input_dim   = len(vocab_dict)
-num_classes = len(vocab_dict)
+		#apply transformed gradients (this case no transform)
+		#apply_transform_op = opt.apply_gradients(tgv)
 
-# Hidden Size = num_units = output sequence의 길이(?)
-hidden_size = 1  # Many to one model
-hidden_dim  = 10 #
-'''
-[example]
-if you have 1000 training examples, and your batch size is 500, then it will take 2 iterations to complete 1 epoch.
-'''
+	def train_model(self, train_x, train_y):
+		try:
+			batch_size = self.config.batch_size
 
-dataX = []
-dataY = []
-twitter = Twitter()
+			# with graph.as_default():
+			saver = tf.train.Saver()
 
-df_sop = pd.read_csv('./data/question_operator_set_1500.csv')
+			sess = tf.Session()
+			sess.run(tf.global_variables_initializer())
+			train_writer = tf.summary.FileWriter('./logs/train', sess.graph)
 
-for idx, value in enumerate(df_sop['question']):
-    dataX.append([vocab_dict[question] for question in twitter.morphs(value)]) 
-    
-for idx, value in enumerate(df_sop['operator']):
-    dataY.append([operator_dict[value]])   
+			# Getting an initial state of all zeros
+			initial_state = self.model.cell.zero_state(batch_size, tf.float32)
+			iteration = 1
 
-dataY = ut.MinMaxScaler(dataY)
+			for e in range(self.config.epochs):
+				state = sess.run(initial_state)
+				for idx, (x, y) in enumerate(get_batches(train_x, train_y, batch_size)):
+					feed = {self.model.input: x, self.model.label: y, self.model.keep_prob: 0.8, initial_state: state}
+					summary, losses, _ = sess.run([self.merged, self.model.cost, self.optimizer], feed_dict=feed)
+			
+					train_writer.add_summary(summary, iteration)
 
-# TODO 6.3 : DynamicRNN 예제에 맞게 데이터 변형 이후 수행
+					print("Epoch: {}/{}".format(e, self.config.epochs), "Iteration: {}".format(iteration), "Train loss: {:.3f}".format(losses))
+			
+					iteration +=1
+					saver.save(sess, "checkpoints/qo_model.ckpt")
+				saver.save(sess, "checkpoints/qo_model.ckpt")
+		except:
+			print('do nothing ....')
+		finally:
+			print('training model is completed')
+			sess.close()
 
-# sequence_length = RNN 모델의 cell의 갯수 = 한 개 Question의 길이
-# sequence_lenght가 가변적인 경우 각 배치의 길이를 리스트로 지정
-sequence_length_list = [len(val) for idx, val in enumerate(dataX)]
-sequence_length = max_len = max(sequence_length_list)
+	#funciton to transform gradients
+	def transform_grad(grad, decay=1.0):
+	#return decayed gradient
+		return decay*grad
 
-# Zero-padding, 단 Zero-Padding시에는 nn.dynamic_rnn 사용을 하지 않음
-for idx, val in enumerate(dataX):
-    if len(dataX[idx]) < max_len:
-        for ind in range(0, max_len - len(dataX[idx])):
-            dataX[idx].append(0)
+def main(_):
+	print("main function in train.py starts")
 
-#dataY의 경우의 수를 구한다.  
-operator_num = 99
+	hp = create_hparams()
 
-# dataX를 one-hot-encoding 수행
-ohe = OneHotEncoder()
-ohe.dtype = np.float32
+	dp = DataProcessor(hp)
+	model = QOClassifier(hp)
 
-arrX = np.array(dataX)
-arrX1d = arrX.reshape(-1, 1)
+	trainer = QOTrainer(model, hp)
+	trainer.train_model(dp.train_x, dp.train_y)
 
-ohe.fit(arrX1d)
-ohe.n_values_ = input_dim
-
-one_hot_arr = ohe.transform(arrX1d).toarray()
-X_one_hot = one_hot_arr.reshape(-1, 50, 2047) 
-
-# dataY를 one-hot-encoding수행
-'''
-arrY = np.array(dataY)
-
-ohe.fit(arrY)
-ohe.n_values_ = operator_num
-Y_one_hot = ohe.transform(arrY).toarray()
-'''
-
-# Hyper parameter 출력
-print('========================================')
-print('input data dimension : '                    + str(input_dim)  )
-print('length of output sequence (hidden_size) : ' + str(hidden_size))
-print('num_classes : '                             + str(num_classes))
-print('batch_size : '                              + str(batch_size) )
-print('sequence_length : '                              + str(sequence_length) )
-print('========================================')
-
-X = tf.placeholder(tf.float32, [None, sequence_length, input_dim])
-Y = tf.placeholder(tf.float32, [None, hidden_size])               # Many to one Model
-
-# One-hot encoding
-# X_one_hot = tf.one_hot(dataX, num_classes)
-
-# check out the shape
-# print(X_one_hot.shape)  
-
-# Make a lstm cell with hidden_size (each unit output vector size)
-cell = rnn.BasicLSTMCell(hidden_size, state_is_tuple = True)
-cell = rnn.MultiRNNCell([cell] * 2, state_is_tuple = True)
-
-# outputs: unfolding size x hidden size, state = hidden size
-outputs, _states = tf.nn.dynamic_rnn(cell, X, dtype=tf.float32)
-
-# fully_connected layer
-#Y_pred = tf.contrib.layers.fully_connected(outputs[:, -1], hidden_dim, activation_fn=None)
-
-# cost/loss
-loss = tf.reduce_sum(tf.square(outputs[:, -1] - Y))  # sum of the squares
-
-# optimizer
-optimizer = tf.train.AdamOptimizer(learing_rate)
-train = optimizer.minimize(loss)
-
-# RMSE
-targets = tf.placeholder(tf.float32, [None, 1])
-predictions = tf.placeholder(tf.float32, [None, 1])
-rmse = tf.sqrt(tf.reduce_mean(tf.square(targets - predictions)))
-
-with tf.Session() as sess:
-    init = tf.global_variables_initializer()
-    sess.run(init)
-
-    # Training step
-    for i in range(iterations): # iterations = 15 = 1500 / 100
-        _, step_loss = sess.run([train, loss], feed_dict={X: X_one_hot[i*batch_size:(i+1)*batch_size], Y: dataY[i*batch_size:(i+1)*batch_size]})
-        result = sess.run(outputs, feed_dict={X: X_one_hot[i*batch_size:(i+1)*batch_size]})
-        print("[step: {} loss: {} output : {} Y_real : {}".format(i, step_loss, result, dataY[i]))
+if __name__ == "__main__":
+	tf.app.run()
